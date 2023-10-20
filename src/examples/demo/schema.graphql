@@ -1,0 +1,222 @@
+schema {
+	query: Query
+	mutation: Mutation
+}
+
+scalar Boolean
+scalar Char
+scalar Date
+scalar DateTimeOffset
+scalar Float
+scalar ID
+scalar Int
+scalar String
+scalar StringKeyValuePair
+
+directive @include(if: Boolean!) on FIELD | FRAGMENT_SPREAD | INLINE_FRAGMENT
+directive @skip(if: Boolean!) on FIELD | FRAGMENT_SPREAD | INLINE_FRAGMENT
+
+enum Genre {
+	"""Action movie type"""
+	Action
+	"""Comedy movie type"""
+	Comedy
+	"""Drama movie type"""
+	Drama
+	"""Horror movie type"""
+	Horror
+	"""Scifi movie type"""
+	Scifi
+}
+
+"""Sort direction enum"""
+enum SortDirectionEnum {
+	ASC
+	DESC
+}
+
+type Query {
+	"""actors paged by connection & edges and orderable"""
+	actors(filter: String, sort: [DirectorsSortInput!], first: Int, after: String, last: Int, before: String): PersonConnection
+	"""Actors with offset paging"""
+	actorsOffset(skip: Int, take: Int): PersonPage
+	attributes: [StringKeyValuePair!]
+	"""List of directors"""
+	directors(sort: [DirectorsSortInput!] = [{ lastName: ASC }]): [Person!]
+	"""Return a Movie by its Id"""
+	movie(id: Int!): Movie
+	"""Collection of Movies"""
+	movies(filter: String, sort: [MoviesSortInput!], first: Int, after: String, last: Int, before: String): MovieConnection
+	"""Collection of Peoples"""
+	people: [Person!]
+	"""Return a Person by its Id"""
+	person(id: Int!): Person
+	"""List of users"""
+	users: [User!]
+	"""List of writers"""
+	writers: [Person!]
+}
+
+type Actor {
+	movie: Movie
+	movieId: Int!
+	person: Person
+	personId: Int!
+}
+
+type ConnectionEdgePerson {
+	"""The cursor for this items position within the collection"""
+	cursor: String!
+	"""The item of the collection"""
+	node: Person!
+}
+
+"""Detail item"""
+input Detail {
+	description: String
+}
+
+"""Sort arguments for directors"""
+input DirectorsSortInput {
+	died: SortDirectionEnum
+	dob: SortDirectionEnum
+	firstName: SortDirectionEnum
+	id: SortDirectionEnum
+	isDeleted: SortDirectionEnum
+	lastName: SortDirectionEnum
+}
+
+type Movie {
+	"""Actors in the movie"""
+	actors: [Person!]
+	agesOfActorsAtRelease: [Int!]
+	"""User who added this movie"""
+	contributedBy: User
+	createdBy: Int!
+	director: Person
+	directorAgeAtRelease: Int!
+	directorId: Int
+	"""Enum of Genre"""
+	genre: Genre!
+	id: Int!
+	name: String
+	rating: Float!
+	released: Date!
+	"""Writers in the movie"""
+	writers: [Person!]
+}
+
+"""Metadata about a Movie connection (paging over people)"""
+type MovieConnection {
+	"""Edge information about each node in the collection"""
+	edges: [MovieEdge!]!
+	"""Information about this page of data"""
+	pageInfo: PageInfo!
+	"""Total count of items in the collection"""
+	totalCount: Int!
+}
+
+"""Metadata about an edge of page result"""
+type MovieEdge {
+	"""The cursor for this items position within the collection"""
+	cursor: String!
+	"""The item of the collection"""
+	node: Movie!
+}
+
+"""Sort arguments for movies"""
+input MoviesSortInput {
+	createdBy: SortDirectionEnum
+	directorAgeAtRelease: SortDirectionEnum
+	directorId: SortDirectionEnum
+	genre: SortDirectionEnum
+	id: SortDirectionEnum
+	name: SortDirectionEnum
+	rating: SortDirectionEnum
+	released: SortDirectionEnum
+}
+
+"""Metadata about a page of data"""
+type PageInfo {
+	"""Last cursor in the page. Use this as the next from argument"""
+	endCursor: String!
+	"""If there is more data after this page"""
+	hasNextPage: Boolean!
+	"""If there is data previous to this page"""
+	hasPreviousPage: Boolean!
+	"""Start cursor in the page. Use this to go backwards with the before argument"""
+	startCursor: String!
+}
+
+type Person {
+	"""Movies they acted in"""
+	actorIn: [Movie!]
+	"""Show the person's age"""
+	age: Int!
+	died: Date
+	directorOf: [Movie!]
+	dob: Date!
+	"""Get Director of based on filter"""
+	filteredDirectorOf(filter: String): [Movie!]
+	firstName: String!
+	id: Int!
+	isDeleted: Boolean!
+	lastName: String!
+	"""Person's name"""
+	name: String
+	"""Movies they wrote"""
+	writerOf: [Movie!]
+}
+
+"""Metadata about a person connection (paging over people)"""
+type PersonConnection {
+	"""Edge information about each node in the collection"""
+	edges: [ConnectionEdgePerson!]!
+	"""Information about this page of data"""
+	pageInfo: PageInfo!
+	"""Total count of items in the collection"""
+	totalCount: Int!
+}
+
+"""Metadata about a Person page (paging over people)"""
+type PersonPage {
+	"""True if there is more data after this page"""
+	hasNextPage: Boolean!
+	"""True if there is more data before this page"""
+	hasPreviousPage: Boolean!
+	"""Return a Person by its Id"""
+	item(id: Int!): Person
+	"""Items in the page"""
+	items: [Person]!
+	"""Count of the total items in the collection"""
+	totalItems: Int!
+}
+
+"""A user of the system"""
+type User {
+	email: String
+	id: Int!
+	"""Movies this user added"""
+	moviesContributed: [Movie!]
+	name: String
+}
+
+type Writer {
+	movie: Movie
+	movieId: Int!
+	person: Person
+	personId: Int!
+}
+
+type Mutation {
+	addActor(firstName: String, lastName: String, movieId: Int!): Person
+	addActor2(firstName: String, lastName: String, movieId: Int!): [Person!]
+	addActor3(names: [String!], movieId: Int!): [Person!]
+	"""Add a new Movie object"""
+	addMovie(name: String!, rating: Float!, details: Detail, genre: Genre!, released: Date!): Movie
+	"""Example of a mutation that takes 0 arguments"""
+	exampleNoArgs: Movie
+	"""Example of a mutation that does not use the context or argments but does use registered services"""
+	exampleNoArgsWithService: Int!
+}
+
